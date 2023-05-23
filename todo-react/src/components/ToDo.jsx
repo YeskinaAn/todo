@@ -77,7 +77,6 @@ const ToDo = () => {
     axios
       .delete(`http://localhost:3001/todo/${id}`, config)
       .then(() => {
-        //or like invalidateQueries as in tanstack
         setTodos(todos.filter((todo) => todo.id !== id));
       })
       .catch((error) => {
@@ -173,12 +172,8 @@ const ToDo = () => {
     } else {
       setSelectedPriority(0);
     }
-    // if (editingTodo && editingTodo.dueDate) {
-    //   setSelectedDate(editingTodo.dueDate);
-    // }
   }, [editingTodo, editingTodo.priority]);
 
-  console.log(todos, editingTodo);
   const color = (priority) => {
     switch (priority) {
       case 1:

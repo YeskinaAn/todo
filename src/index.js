@@ -281,42 +281,6 @@ app.post("/todo/:id/labels", authenticateUser, async (req, res) => {
   res.json(label);
 });
 
-app.put("/todo/:id/labels/:labelId", authenticateUser, async (req, res) => {
-  const { id, labelId } = req.params;
-  const { title } = req.body;
-
-  const todo = await prisma.todo.findUnique({
-    where: {
-      id: Number(id),
-    },
-  });
-
-  if (!todo) {
-    return res.status(404).send("Todo not found");
-  }
-
-  const label = await prisma.labelTodo.findUnique({
-    where: {
-      id: Number(labelId),
-    },
-  });
-
-  if (!label) {
-    return res.status(404).send("Label not found");
-  }
-
-  const updatedLabel = await prisma.labelTodo.update({
-    where: {
-      id: Number(labelId),
-    },
-    data: {
-      title,
-    },
-  });
-
-  res.json(updatedLabel);
-});
-
 app.delete(
   "/todo/:id/labels/:labelId",
   authenticateUser,
