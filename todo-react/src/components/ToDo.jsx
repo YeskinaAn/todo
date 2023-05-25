@@ -3,6 +3,7 @@ import {
   Box,
   Button,
   Checkbox,
+  CircularProgress,
   FormControl,
   FormControlLabel,
   InputLabel,
@@ -13,6 +14,7 @@ import {
   Typography,
 } from "@mui/material";
 import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
 import { useHistory } from "react-router-dom";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
@@ -23,6 +25,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import Labels from "./Labels";
+import { useCreateTodo, useUpdateTodo, useDeleteTodo } from "./mutations";
 
 const ToDo = () => {
   const [todos, setTodos] = useState([]);
@@ -31,8 +34,14 @@ const ToDo = () => {
   const [editingTodo, setEditingTodo] = useState({});
   const [selectedPriority, setSelectedPriority] = useState(0);
   const [selectedDate, setSelectedDate] = useState(null);
+  const createTodoMutation = useCreateTodo();
+  const updateTodoMutation = useUpdateTodo();
+  const deleteTodoMutation = useDeleteTodo();
 
   const priorities = [1, 2, 3, 4]; // Array of available priority options
+  const { data: todosData } = useQuery({
+    queryKey: [`/todos`],
+  });
 
   const history = useHistory();
 
@@ -74,76 +83,23 @@ const ToDo = () => {
   };
 
   const deleteTodo = (id) => {
-    axios
-      .delete(`http://localhost:3001/todo/${id}`, config)
-      .then(() => {
-        setTodos(todos.filter((todo) => todo.id !== id));
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    deleteTodoMutation.mutate(id);
   };
 
   const addTodo = () => {
-    axios
-      .post(
-        "http://localhost:3001/todo",
-        { title: newTodo, completed: false },
-        config
-      )
-      .then((response) => {
-        setTodos([...todos, response.data]);
-        setNewTodo("");
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    createTodoMutation.mutate({ title: newTodo, completed: false });
+    setNewTodo("");
   };
 
   const updateTodo = (id, completed) => {
-    axios
-      .put(
-        `http://localhost:3001/todo/${id}`,
-        { id: id, completed: completed },
-        config
-      )
-      .then(() => {
-        setTodos(
-          todos.map((todo) => {
-            if (todo.id === id) {
-              return { ...todo, completed: completed };
-            }
-            return todo;
-          })
-        );
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    updateTodoMutation.mutate({ id: id, completed: completed });
   };
 
   const handlePriorityChange = (id, e) => {
     const priority = e.target.value;
-    axios
-      .put(
-        `http://localhost:3001/todo/${id}`,
-        { id: id, priority: priority },
-        config
-      )
-      .then((response) => {
-        setTodos(
-          todos.map((todo) => {
-            if (todo.id === id) {
-              return { ...todo, priority: priority };
-            }
-            return todo;
-          })
-        );
-        setSelectedPriority(priority);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+
+    updateTodoMutation.mutate({ id: id, priority: priority });
+    setSelectedPriority(priority);
   };
 
   const handleNewTodoChange = (event) => {
@@ -154,17 +110,6 @@ const ToDo = () => {
     localStorage.clear();
     history.push("/");
   };
-
-  useEffect(() => {
-    axios
-      .get("http://localhost:3001/todos", config)
-      .then((response) => {
-        setTodos(response.data);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  }, []);
 
   useEffect(() => {
     if (editingTodo.priority > 0) {
@@ -186,6 +131,21 @@ const ToDo = () => {
         return "text.secondary";
     }
   };
+
+  if (!todosData) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          height: "100vh",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <>
@@ -223,7 +183,7 @@ const ToDo = () => {
             Add
           </Button>
         </Box>
-        {todos.map((el) => (
+        {todosData?.map((el) => (
           <Box
             display="flex"
             justifyContent="space-between"
