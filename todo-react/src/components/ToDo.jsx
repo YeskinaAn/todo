@@ -293,7 +293,7 @@ const ToDo = () => {
                     ))}
                   </Select>
                 </FormControl>
-                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                {/* <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <DatePicker
                     label="Due Date"
                     value={selectedDate}
@@ -301,7 +301,7 @@ const ToDo = () => {
                     inputFormat="YYYY-MM-DD"
                     renderInput={(params) => <TextField {...params} />}
                   />
-                </LocalizationProvider>
+                </LocalizationProvider> */}
                 <Labels
                   setTodos={setTodos}
                   editingTodo={editingTodo}
