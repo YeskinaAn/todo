@@ -11,7 +11,7 @@ model Todo {
   id        Int      @id @default(autoincrement())
   title     String
   completed Boolean  @default(false)
-  user      User?    @relation(fields: [userId], references: [id])
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   userId    Int?
   comments  Comment[]
   priority  Int?
@@ -24,14 +24,14 @@ model LabelTodo {
   todoId      Int
   title       String
   createdAt   DateTime   @default(now())
-  todo        Todo  @relation(fields: [todoId], references: [id])
+  todo        Todo  @relation(fields: [todoId], references: [id], onDelete: Cascade)
 }
 
 model Comment {
   id          Int        @id @default(autoincrement())
   text        String
   createdAt   DateTime   @default(now())
-  todo        Todo       @relation(fields: [todoId], references: [id])
+  todo        Todo       @relation(fields: [todoId], references: [id], onDelete: Cascade)
   todoId      Int
 }
 
@@ -39,5 +39,5 @@ model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
   password  String
-  todos Todo[]
+  todos     Todo[]
 }

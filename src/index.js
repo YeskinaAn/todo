@@ -105,7 +105,7 @@ app.put("/todo/:id", authenticateUser, async (req, res) => {
       data: {
         completed: completed,
         priority: priority,
-        dueDate: dueDate
+        dueDate: dueDate,
       },
     });
 
@@ -117,13 +117,23 @@ app.put("/todo/:id", authenticateUser, async (req, res) => {
 
 app.delete(`/todo/:id`, authenticateUser, async (req, res) => {
   const { id } = req.params;
-  const todo = await prisma.todo.delete({
-    where: {
-      id: Number(id),
-    },
-  });
-  res.json(todo);
+  try {
+    const todo = await prisma.todo.delete({
+      where: {
+        id: Number(id),
+      },
+    });
+    if (!todo) {
+      return res.status(404).send("Todo not found");
+    }
+    res.json(todo);
+  } catch (error) {
+    // Handle the error
+    console.error(error);
+    res.status(500).json({ error: "Failed to delete the todo." });
+  }
 });
+
 
 app.get("/todos", authenticateUser, async (req, res) => {
   console.log(req, res);
@@ -149,7 +159,6 @@ app.get("/labels", authenticateUser, async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 });
-
 
 app.post("/todo/:id/comments", authenticateUser, async (req, res) => {
   const { id } = req.params;
@@ -281,45 +290,37 @@ app.post("/todo/:id/labels", authenticateUser, async (req, res) => {
   res.json(label);
 });
 
-app.delete(
-  "/todo/:id/labels/:labelId",
-  authenticateUser,
-  async (req, res) => {
-    const { id, labelId } = req.params;
+app.delete("/todo/:id/labels/:labelId", authenticateUser, async (req, res) => {
+  const { id, labelId } = req.params;
 
-    const todo = await prisma.todo.findUnique({
-      where: {
-        id: Number(id),
-      },
-    });
+  const todo = await prisma.todo.findUnique({
+    where: {
+      id: Number(id),
+    },
+  });
 
-    if (!todo) {
-      return res.status(404).send("Todo not found");
-    }
-
-    const label = await prisma.labelTodo.findUnique({
-      where: {
-        id: Number(labelId),
-      },
-    });
-
-    if (!label) {
-      return res.status(404).send("label not found");
-    }
-
-    await prisma.labelTodo.delete({
-      where: {
-        id: Number(labelId),
-      },
-    });
-
-    res.sendStatus(204);
+  if (!todo) {
+    return res.status(404).send("Todo not found");
   }
-);
 
+  const label = await prisma.labelTodo.findUnique({
+    where: {
+      id: Number(labelId),
+    },
+  });
 
+  if (!label) {
+    return res.status(404).send("label not found");
+  }
 
+  await prisma.labelTodo.delete({
+    where: {
+      id: Number(labelId),
+    },
+  });
 
+  res.sendStatus(204);
+});
 
 const server = app.listen(3001, () =>
   console.log(`
