@@ -16,8 +16,6 @@ import {
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { useHistory } from "react-router-dom";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { config } from "../helpers/constants";
 import Comments from "./Comments";
 import FlagIcon from "@mui/icons-material/Flag";
@@ -25,7 +23,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import Labels from "./Labels";
-import { useCreateTodo, useUpdateTodo, useDeleteTodo } from "./mutations";
+import { useCreateTodo, useDeleteTodo, useUpdateTodo } from "../mutations";
 
 const ToDo = () => {
   const [todos, setTodos] = useState([]);

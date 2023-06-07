@@ -115,7 +115,7 @@ app.put("/todo/:id", authenticateUser, async (req, res) => {
   }
 });
 
-app.delete(`/todo/:id`, authenticateUser, async (req, res) => {
+app.delete("/todo/:id", authenticateUser, async (req, res) => {
   const { id } = req.params;
   try {
     const todo = await prisma.todo.delete({
@@ -148,6 +148,28 @@ app.get("/todos", authenticateUser, async (req, res) => {
     },
   });
   res.json(todos);
+});
+
+app.get("/todo/:id", authenticateUser, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const todo = await prisma.todo.findUnique({
+      where: { id: Number(id) },
+      include: {
+        comments: true,
+        labels: true,
+      },
+    });
+
+    if (todo) {
+      res.json(todo);
+    } else {
+      res.status(404).json({ error: `Todo with ID ${id} does not exist in the database` });
+    }
+  } catch (error) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
 app.get("/labels", authenticateUser, async (req, res) => {

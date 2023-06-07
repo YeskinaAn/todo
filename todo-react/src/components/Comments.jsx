@@ -7,115 +7,43 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import axios from "axios";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { config } from "../helpers/constants";
+import { useCreateComment, useDeleteComment, useUpdateComment } from "../mutations";
+import { useQuery } from "@tanstack/react-query";
 
-const Comments = ({ editingTodo, setEditingTodo, setTodos, todos }) => {
+const Comments = ({ editingTodo }) => {
   const [comment, setComment] = useState("");
   const [editingComment, setEditingComment] = useState({});
+  const [selectedTodo, setSelectedTodo] = useState({});
   const [edit, setEdit] = useState(false);
-
+  const createCommentMutation = useCreateComment();
+  const updateCommentMutation = useUpdateComment();
+  const deleteCommentMutation = useDeleteComment();
+  
   const addComment = (id) => {
-    axios
-      .post(
-        `http://localhost:3001/todo/${id}/comments`,
-        { todoId: id, text: comment },
-        config
-      )
-      .then((response) => {
-        console.warn(response.data);
-        setTodos(
-          todos.map((todo) => {
-            if (todo.id === id) {
-              return { ...todo, comments: [...todo.comments, response.data] };
-            }
-            return todo;
-          })
-        );
-        setEditingTodo((prev) => {
-          return { ...prev, comments: [...prev.comments, response.data] };
-        });
-        setComment("");
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    createCommentMutation.mutate({ todoId: id, text: comment });
+    setComment("");
   };
 
   const updateComment = (todoId, commentId, text) => {
-    axios
-      .put(
-        `http://localhost:3001/todo/${todoId}/comments/${commentId}`,
-        { id: commentId, todoId: todoId, text: text },
-        config
-      )
-      .then((response) => {
-        console.warn(response.data);
-        setEditingComment((prev) => {
-          return { ...prev, text: "" };
-        });
-        setTodos(
-          todos.map((todo) => {
-            const updatedComments = todo.comments.map((comment) => {
-              if (comment.id === commentId) {
-                return { ...comment, text: response.data.text };
-              }
-              return comment;
-            });
-            if (todo.id === todoId) {
-              return {
-                ...todo,
-                comments: updatedComments,
-              };
-            }
-            return todo;
-          })
-        );
-        setEditingTodo((prevTodo) => {
-          const updatedComments = prevTodo.comments.map((comment) => {
-            if (comment.id === commentId) {
-              return { ...comment, text: response.data.text };
-            }
-            return comment;
-          });
-          return { ...prevTodo, comments: updatedComments };
-        });
-        setEdit(false);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    updateCommentMutation.mutate({ id: commentId, todoId: todoId, text: text });
+    setEdit(false);
+    setEditingComment((prev) => {
+      return { ...prev, text: "" };
+    });
   };
 
   const deleteComment = (todoId, commentId) => {
-    axios
-      .delete(
-        `http://localhost:3001/todo/${todoId}/comments/${commentId}`,
-        config
-      )
-      .then(() => {
-        setTodos(
-          todos.map((todo) => {
-            const updatedComments = todo.comments.filter(
-              (comment) => comment.id !== commentId
-            );
-          return { ...todo, comments: updatedComments };
-          })
-        );
-        setEditingTodo((prevTodo) => {
-          const updatedComments = prevTodo.comments.filter(
-            (comment) => comment.id !== commentId
-          );
-          return { ...prevTodo, comments: updatedComments };
-        });
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    deleteCommentMutation.mutate({ todoId, id: commentId });
+    setSelectedTodo((prevTodo) => {
+      const updatedComments = prevTodo.comments.filter(
+        (comment) => comment.id !== commentId
+      );
+      return { ...prevTodo, comments: updatedComments };
+    });
   };
 
   const handleCommentChange = (event) => {
@@ -126,7 +54,16 @@ const Comments = ({ editingTodo, setEditingTodo, setTodos, todos }) => {
     setEditingComment(comment);
     setEdit(true);
   };
-  // console.warn(editingTodo);
+
+  const { data: todo } = useQuery({
+    queryKey: [`/todo/${editingTodo.id}`],
+  });
+
+  useEffect(() => {
+    setSelectedTodo(todo)
+  }, [todo])
+
+  console.log(selectedTodo, 88)
   return (
     <Accordion defaultExpanded sx={{ width: "100%" }}>
       <AccordionSummary
@@ -138,7 +75,7 @@ const Comments = ({ editingTodo, setEditingTodo, setTodos, todos }) => {
       </AccordionSummary>
       <AccordionDetails>
         <Box mt={2}>
-          {editingTodo?.comments?.map((el, index) => (
+          {selectedTodo?.comments?.map((el, index) => (
             <Box
               sx={{
                 display: "flex",
@@ -216,7 +153,7 @@ const Comments = ({ editingTodo, setEditingTodo, setTodos, todos }) => {
             <Button
               variant="contained"
               color="primary"
-              onClick={() => addComment(editingTodo.id)}
+              onClick={() => addComment(selectedTodo.id)}
             >
               Add Comment
             </Button>
