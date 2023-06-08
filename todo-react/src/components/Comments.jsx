@@ -9,20 +9,18 @@ import {
 } from "@mui/material";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useCreateComment, useDeleteComment, useUpdateComment } from "../mutations";
-import { useQuery } from "@tanstack/react-query";
 
-const Comments = ({ editingTodo }) => {
+const Comments = ({ selectedTodo, setSelectedTodo }) => {
   const [comment, setComment] = useState("");
   const [editingComment, setEditingComment] = useState({});
-  const [selectedTodo, setSelectedTodo] = useState({});
   const [edit, setEdit] = useState(false);
   const createCommentMutation = useCreateComment();
   const updateCommentMutation = useUpdateComment();
   const deleteCommentMutation = useDeleteComment();
-  
+
   const addComment = (id) => {
     createCommentMutation.mutate({ todoId: id, text: comment });
     setComment("");
@@ -54,16 +52,6 @@ const Comments = ({ editingTodo }) => {
     setEditingComment(comment);
     setEdit(true);
   };
-
-  const { data: todo } = useQuery({
-    queryKey: [`/todo/${editingTodo.id}`],
-  });
-
-  useEffect(() => {
-    setSelectedTodo(todo)
-  }, [todo])
-
-  console.log(selectedTodo, 88)
   return (
     <Accordion defaultExpanded sx={{ width: "100%" }}>
       <AccordionSummary
@@ -73,7 +61,7 @@ const Comments = ({ editingTodo }) => {
       >
         <Typography>Comments</Typography>
       </AccordionSummary>
-      <AccordionDetails>
+      <AccordionDetails sx={{ maxHeight: "550px", overflowY: "auto" }}>
         <Box mt={2}>
           {selectedTodo?.comments?.map((el, index) => (
             <Box
@@ -84,6 +72,7 @@ const Comments = ({ editingTodo }) => {
                 py: 1,
                 borderBottom: "1px solid #C7C8CA",
               }}
+              key={index}
             >
               {edit && editingComment.id === el.id ? (
                 <Box

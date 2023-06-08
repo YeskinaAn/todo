@@ -3,38 +3,20 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
 import { config } from "../helpers/constants";
+import { useCreateLabel } from "../mutations";
+import { useQuery } from "@tanstack/react-query";
 
-const Labels = ({ setEditingTodo, setTodos, todos, editingTodo }) => {
+const Labels = ({ selectedTodo }) => {
   const [labels, setLabels] = useState([]);
   const [label, setLabel] = useState("");
   const [addLabels, setAddLabels] = useState(false);
 
+  const createLabelMutation = useCreateLabel();
+
   const addLabel = (id) => {
-    axios
-      .post(
-        `http://localhost:3001/todo/${id}/labels`,
-        { todoId: id, title: label },
-        config
-      )
-      .then((response) => {
-        console.warn(response.data);
-        setTodos(
-          todos.map((todo) => {
-            if (todo.id === id) {
-              return { ...todo, labels: [...todo.labels, response.data] };
-            }
-            return todo;
-          })
-        );
-        setEditingTodo((prev) => {
-          return { ...prev, labels: [...prev.labels, response.data] };
-        });
-        setLabel("");
-        setAddLabels(false);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    createLabelMutation.mutate({ todoId: id, title: label });
+    setLabel("");
+    setAddLabels(false);
   };
   const handleLabelChange = (event) => {
     setLabel(event.target.value);
@@ -49,33 +31,31 @@ const Labels = ({ setEditingTodo, setTodos, todos, editingTodo }) => {
         console.log(error);
       });
   }, []);
-  
+
   const handleLabelDelete = (todoId, labelId) => {
-    axios
-      .delete(
-        `http://localhost:3001/todo/${todoId}/labels/${labelId}`,
-        config
-      )
-      .then(() => {
-        setTodos(
-          todos.map((todo) => {
-            const updatedLabels = todo.labels.filter(
-              (label) => label.id !== labelId
-            );
-            return { ...todo, labels: updatedLabels };
-          })
-        );
-        setEditingTodo((prevTodo) => {
-          const updatedLabels = prevTodo.labels.filter(
-            (label) => label.id !== labelId
-          );
-          return { ...prevTodo, labels: updatedLabels };
-        });
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    // axios
+    //   .delete(`http://localhost:3001/todo/${todoId}/labels/${labelId}`, config)
+    //   .then(() => {
+    //     setTodos(
+    //       todos.map((todo) => {
+    //         const updatedLabels = todo.labels.filter(
+    //           (label) => label.id !== labelId
+    //         );
+    //         return { ...todo, labels: updatedLabels };
+    //       })
+    //     );
+    //     setEditingTodo((prevTodo) => {
+    //       const updatedLabels = prevTodo.labels.filter(
+    //         (label) => label.id !== labelId
+    //       );
+    //       return { ...prevTodo, labels: updatedLabels };
+    //     });
+    //   })
+    //   .catch((error) => {
+    //     console.log(error);
+    //   });
   };
+
   return (
     <Box>
       <Box mt={2} display="flex" justifyContent="space-between">
@@ -85,9 +65,10 @@ const Labels = ({ setEditingTodo, setTodos, todos, editingTodo }) => {
         </Button>
       </Box>
       <Stack direction="row" spacing={1}>
-        {editingTodo?.labels?.map((el) => (
+        {selectedTodo?.labels?.map((el, index) => (
           <Chip
             label={el.title}
+            key={index}
             onDelete={() => handleLabelDelete(el.todoId, el.id)}
           />
         ))}
@@ -105,7 +86,7 @@ const Labels = ({ setEditingTodo, setTodos, todos, editingTodo }) => {
             <Button
               variant="contained"
               color="primary"
-              onClick={() => addLabel(editingTodo.id)}
+              onClick={() => addLabel(selectedTodo.id)}
             >
               Add Label
             </Button>

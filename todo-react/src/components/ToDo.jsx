@@ -1,22 +1,17 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Box,
   Button,
   Checkbox,
-  CircularProgress,
-  FormControl,
   FormControlLabel,
-  InputLabel,
-  MenuItem,
   Modal,
-  Select,
   TextField,
   Typography,
 } from "@mui/material";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { useHistory } from "react-router-dom";
-import { config } from "../helpers/constants";
+import { color, config } from "../helpers/constants";
 import Comments from "./Comments";
 import FlagIcon from "@mui/icons-material/Flag";
 import CloseIcon from "@mui/icons-material/Close";
@@ -24,19 +19,21 @@ import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import Labels from "./Labels";
 import { useCreateTodo, useDeleteTodo, useUpdateTodo } from "../mutations";
+import Priorities from "./Priorities";
+import { useEffect } from "react";
+import Loader from "./Loader";
 
 const ToDo = () => {
   const [todos, setTodos] = useState([]);
   const [newTodo, setNewTodo] = useState("");
   const [open, setOpen] = useState(false);
-  const [editingTodo, setEditingTodo] = useState({});
-  const [selectedPriority, setSelectedPriority] = useState(0);
+  const [selectedTodo, setSelectedTodo] = useState(null);
+  const [todoId, setTodoId] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
   const createTodoMutation = useCreateTodo();
   const updateTodoMutation = useUpdateTodo();
   const deleteTodoMutation = useDeleteTodo();
 
-  const priorities = [1, 2, 3, 4]; // Array of available priority options
   const { data: todosData } = useQuery({
     queryKey: [`/todos`],
   });
@@ -44,7 +41,7 @@ const ToDo = () => {
   const history = useHistory();
 
   const handleOpen = (todo) => {
-    setEditingTodo(todo);
+    setTodoId(todo.id);
     setOpen(true);
   };
 
@@ -59,15 +56,15 @@ const ToDo = () => {
       // Format the selected date as required before sending it to the backend
       axios
         .put(
-          `http://localhost:3001/todo/${editingTodo.id}`,
-          { id: editingTodo.id, dueDate: formattedDate },
+          `http://localhost:3001/todo/${todoId.id}`,
+          { id: todoId.id, dueDate: formattedDate },
           config
         )
         .then((response) => {
           console.warn(response);
           setTodos(
             todos.map((todo) => {
-              if (todo.id === editingTodo.id) {
+              if (todo.id === todoId.id) {
                 return { ...todo, dueDate: formattedDate };
               }
               return todo;
@@ -93,13 +90,6 @@ const ToDo = () => {
     updateTodoMutation.mutate({ id: id, completed: completed });
   };
 
-  const handlePriorityChange = (id, e) => {
-    const priority = e.target.value;
-
-    updateTodoMutation.mutate({ id: id, priority: priority });
-    setSelectedPriority(priority);
-  };
-
   const handleNewTodoChange = (event) => {
     setNewTodo(event.target.value);
   };
@@ -109,39 +99,18 @@ const ToDo = () => {
     history.push("/");
   };
 
-  useEffect(() => {
-    if (editingTodo.priority > 0) {
-      setSelectedPriority(editingTodo.priority);
-    } else {
-      setSelectedPriority(0);
-    }
-  }, [editingTodo, editingTodo.priority]);
+  const { data: todo } = useQuery({
+    queryKey: [`/todo/${todoId}`],
+    enabled: !!todoId,
+  });
 
-  const color = (priority) => {
-    switch (priority) {
-      case 1:
-        return "common.red";
-      case 2:
-        return "#eb8909";
-      case 3:
-        return "primary.main";
-      default:
-        return "text.secondary";
-    }
-  };
+  useEffect(() => {
+    setSelectedTodo(todo);
+  }, [todo]);
 
   if (!todosData) {
     return (
-      <Box
-        sx={{
-          display: "flex",
-          height: "100vh",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <CircularProgress />
-      </Box>
+     <Loader />
     );
   }
 
@@ -261,36 +230,13 @@ const ToDo = () => {
               <Box pr={2} width="70%">
                 <Box>
                   <Typography variant="h3" sx={{ m: 3 }}>
-                    {editingTodo.title}
+                    {selectedTodo?.title}
                   </Typography>
                 </Box>
-                <Comments
-                  editingTodo={editingTodo}
-                  setEditingTodo={setEditingTodo}
-                  setTodos={setTodos}
-                  todos={todos}
-                />
+                <Comments selectedTodo={selectedTodo} setSelectedTodo={setSelectedTodo} />
               </Box>
               <Box sx={{ backgroundColor: "#fafafa" }} px={2} width="30%">
-                <FormControl sx={{ mt: 6, mb: 2 }} fullWidth>
-                  <InputLabel id="priority-label">Priority</InputLabel>
-                  <Select
-                    labelId="priority-label"
-                    id="priority-select"
-                    value={selectedPriority}
-                    label="Priority"
-                    onChange={(e) => handlePriorityChange(editingTodo.id, e)}
-                  >
-                    {priorities.map((priority) => (
-                      <MenuItem key={priority} value={priority}>
-                        <Box sx={{ display: "flex", alignItems: "center" }}>
-                          <FlagIcon sx={{ color: color(priority) }} /> P
-                          {priority}
-                        </Box>
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                <Priorities selectedTodo={selectedTodo} />
                 {/* <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <DatePicker
                     label="Due Date"
@@ -301,10 +247,7 @@ const ToDo = () => {
                   />
                 </LocalizationProvider> */}
                 <Labels
-                  setTodos={setTodos}
-                  editingTodo={editingTodo}
-                  setEditingTodo={setEditingTodo}
-                  todos={todos}
+                  selectedTodo={selectedTodo}
                 />
               </Box>
             </Box>

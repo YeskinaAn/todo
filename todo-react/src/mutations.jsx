@@ -16,7 +16,27 @@ export const useCreateTodo = () =>
 export const useCreateComment = () =>
   useMutation({
     mutationFn: (payload) => {
-      return privateTodoApi.post(`/todo/${payload.todoId}/comments`, payload).then(({ data }) => data);
+      return privateTodoApi
+        .post(`/todo/${payload.todoId}/comments`, payload)
+        .then(({ data }) => data);
+    },
+    onSuccess: (responce) =>
+      Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: [`/todos`],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: [`/todo/${responce.todoId}`],
+        }),
+      ]),
+  });
+
+export const useCreateLabel = () =>
+  useMutation({
+    mutationFn: (payload) => {
+      return privateTodoApi
+        .post(`/todo/${payload.todoId}/labels`, payload)
+        .then(({ data }) => data);
     },
     onSuccess: (responce) =>
       Promise.all([
@@ -32,7 +52,9 @@ export const useCreateComment = () =>
 export const useUpdateComment = () =>
   useMutation({
     mutationFn: (payload) => {
-      return privateTodoApi.put(`/todo/${payload.todoId}/comments/${payload.id}`, payload).then(({ data }) => data);
+      return privateTodoApi
+        .put(`/todo/${payload.todoId}/comments/${payload.id}`, payload)
+        .then(({ data }) => data);
     },
     onSuccess: (responce) =>
       Promise.all([
@@ -48,13 +70,14 @@ export const useUpdateComment = () =>
 export const useDeleteComment = () =>
   useMutation({
     mutationFn: (payload) => {
-      return privateTodoApi.delete(`/todo/${payload.todoId}/comments/${payload.id}`, payload).then(({ data }) => data);
+      return privateTodoApi
+        .delete(`/todo/${payload.todoId}/comments/${payload.id}`, payload)
+        .then(({ data }) => data);
     },
     onSuccess: () =>
       queryClient.invalidateQueries({
         queryKey: [`/todos`],
       }),
-
   });
 
 export const useUpdateTodo = () =>
