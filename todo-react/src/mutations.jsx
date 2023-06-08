@@ -49,6 +49,24 @@ export const useCreateLabel = () =>
       ]),
   });
 
+export const useDeleteLabel = () =>
+  useMutation({
+    mutationFn: (payload) => {
+      return privateTodoApi
+        .delete(`/todo/${payload.todoId}/labels/${payload.id}`, payload)
+        .then(({ data }) => data);
+    },
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: [`/todos`],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: [`/labels`],
+        }),
+      ]),
+  });
+
 export const useUpdateComment = () =>
   useMutation({
     mutationFn: (payload) => {

@@ -84,6 +84,7 @@ const theme = createTheme({
         root: {
           "& legend": { display: "none" },
           "& .MuiOutlinedInput-root": {
+            paddingRight: 0,
             "& fieldset, &:hover fieldset, &.Mui-focused fieldset": {
               top: 0,
               border: `1px solid ${baseBorderColor}`,

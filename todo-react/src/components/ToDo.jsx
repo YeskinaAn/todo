@@ -248,6 +248,7 @@ const ToDo = () => {
                 </LocalizationProvider> */}
                 <Labels
                   selectedTodo={selectedTodo}
+                  setSelectedTodo={setSelectedTodo}
                 />
               </Box>
             </Box>

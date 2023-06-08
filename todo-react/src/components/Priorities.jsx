@@ -18,13 +18,16 @@ const Priorities = ({ selectedTodo }) => {
     const priority = e.target.value;
     updateTodoMutation.mutate({ id: id, priority: priority });
   };
+
   const { data: todo } = useQuery({
     queryKey: [`/todo/${selectedTodo?.id}`],
     enabled: !!selectedTodo?.id,
   });
+
   if (!selectedTodo) {
     return <Loader />;
   }
+  
   return (
     <FormControl sx={{ mt: 6, mb: 2 }} fullWidth>
       <InputLabel id="priority-label">Priority</InputLabel>
