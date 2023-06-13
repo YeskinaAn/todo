@@ -172,6 +172,24 @@ app.get("/todo/:id", authenticateUser, async (req, res) => {
   }
 });
 
+app.get("/todo/:id/labels", authenticateUser, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const labels = await prisma.labelTodo.findMany({
+      where: {
+        todoId: Number(id),
+      },
+    });
+
+    res.json(labels);
+  } catch (error) {
+    console.error("Error retrieving labels:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+
 app.get("/labels", authenticateUser, async (req, res) => {
   try {
     const labels = await prisma.labelTodo.findMany();
@@ -310,6 +328,45 @@ app.post("/todo/:id/labels", authenticateUser, async (req, res) => {
   });
 
   res.json(label);
+});
+
+app.put("/todo/:id/labels/:labelId", authenticateUser, async (req, res) => {
+   const { id, labelId } = req.params;
+  const { title } = req.body;
+
+  // Find the todo that the comment belongs to
+  const todo = await prisma.todo.findUnique({
+    where: {
+      id: Number(id),
+    },
+  });
+
+  if (!todo) {
+    return res.status(404).send("Todo not found");
+  }
+
+  // Find the comment to be updated
+  const label = await prisma.label.findUnique({
+    where: {
+      id: Number(labelId),
+    },
+  });
+
+  if (!label) {
+    return res.status(404).send("Label not found");
+  }
+
+  // Update the text of the comment
+  const updatedLabel = await prisma.label.update({
+    where: {
+      id: Number(labelId),
+    },
+    data: {
+      title,
+    },
+  });
+
+  res.json(updatedLabel);
 });
 
 app.delete("/todo/:id/labels/:labelId", authenticateUser, async (req, res) => {

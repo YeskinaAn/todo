@@ -49,6 +49,27 @@ export const useCreateLabel = () =>
       ]),
   });
 
+export const useUpdateLabel = () =>
+  useMutation({
+    mutationFn: (payload) => {
+      return privateTodoApi
+        .put(`/todo/${payload.todoId}/labels/${payload.id}`, payload)
+        .then(({ data }) => data);
+    },
+    onSuccess: (responce) =>
+      Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: [`/todos`],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: [`/labels`],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: [`/todo/${responce.todoId}`],
+        }),
+      ]),
+  });
+
 export const useDeleteLabel = () =>
   useMutation({
     mutationFn: (payload) => {

@@ -109,11 +109,8 @@ const ToDo = () => {
   }, [todo]);
 
   if (!todosData) {
-    return (
-     <Loader />
-    );
+    return <Loader />;
   }
-
   return (
     <>
       <Button onClick={logout}>Log out</Button>
@@ -150,7 +147,7 @@ const ToDo = () => {
             Add
           </Button>
         </Box>
-        {todosData?.map((el) => (
+        {todosData?.map((el, i) => (
           <Box
             display="flex"
             justifyContent="space-between"
@@ -158,28 +155,41 @@ const ToDo = () => {
             key={el.id}
             width="500px"
             alignItems="center"
+            border="2px solid #468bd1"
+            m={1}
           >
-            <Box display="flex">
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={el.completed}
-                    onChange={(event) =>
-                      updateTodo(el.id, event.target.checked)
-                    }
-                    color="primary"
-                  />
-                }
-                label={el.title}
-                style={{
-                  textDecoration: el.completed ? "line-through" : "none",
-                }}
-              />
-              {el.priority && (
-                <Box sx={{ display: "flex", alignItems: "center" }}>
-                  <FlagIcon sx={{ color: color(el.priority) }} />P{el.priority}
-                </Box>
-              )}
+            <Box display="flex" flexDirection="column">
+              <Box display="flex">
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={el.completed}
+                      onChange={(event) =>
+                        updateTodo(el.id, event.target.checked)
+                      }
+                      color="primary"
+                    />
+                  }
+                  label={el.title}
+                  style={{
+                    textDecoration: el.completed ? "line-through" : "none",
+                  }}
+                />
+                {el.priority && (
+                  <Box sx={{ display: "flex", alignItems: "center" }}>
+                    <FlagIcon sx={{ color: color(el.priority) }} />P
+                    {el.priority}
+                  </Box>
+                )}
+              </Box>
+              <Box display="flex">
+                {el.labels.map((label) => (
+                  <Typography sx={{ fontSize: "12px", mx: 0.5 }}>
+                    {" "}
+                    @{label.title}
+                  </Typography>
+                ))}
+              </Box>
             </Box>
 
             <Box>
@@ -233,7 +243,10 @@ const ToDo = () => {
                     {selectedTodo?.title}
                   </Typography>
                 </Box>
-                <Comments selectedTodo={selectedTodo} setSelectedTodo={setSelectedTodo} />
+                <Comments
+                  selectedTodo={selectedTodo}
+                  setSelectedTodo={setSelectedTodo}
+                />
               </Box>
               <Box sx={{ backgroundColor: "#fafafa" }} px={2} width="30%">
                 <Priorities selectedTodo={selectedTodo} />

@@ -1,22 +1,16 @@
-import {
-  Box,
-  Button,
-  TextField,
-  Typography,
-  Chip,
-  Stack,
-  InputAdornment,
-} from "@mui/material";
-import { useState } from "react";
+import { Box, Button, Typography, Chip, Stack, TextField, InputAdornment } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import { useCreateLabel, useDeleteLabel } from "../mutations";
+import { useCreateLabel, useDeleteLabel, useUpdateLabel } from "../mutations";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 
 const Labels = ({ selectedTodo, setSelectedTodo }) => {
   const [label, setLabel] = useState("");
   const [addLabels, setAddLabels] = useState(false);
 
   const createLabelMutation = useCreateLabel();
+  const updateLabelMutation = useUpdateLabel();
+
   const deleteLabelMutation = useDeleteLabel();
 
   const addLabel = (id) => {
@@ -39,7 +33,12 @@ const Labels = ({ selectedTodo, setSelectedTodo }) => {
   };
 
   const { data: labels } = useQuery({
-    queryKey: [`/labels`],
+    queryKey: ["/labels"],
+  });
+
+  const { data: labelsForTodo } = useQuery({
+    queryKey: [`/todo/${selectedTodo?.id}/labels`],
+    enabled: !!selectedTodo?.id,
   });
 
   return (
