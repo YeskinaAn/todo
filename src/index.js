@@ -15,6 +15,10 @@ const corsOptions = {
 app.use(express.json());
 app.use(cors(corsOptions));
 
+const moment = require('moment-timezone');
+moment.tz.setDefault('Europe/Kiev');
+
+
 app.post("/signup", async (req, res) => {
   const { email, password } = req.body;
 

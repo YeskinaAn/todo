@@ -24,7 +24,6 @@ import { useEffect } from "react";
 import Loader from "./Loader";
 
 const ToDo = () => {
-  const [todos, setTodos] = useState([]);
   const [newTodo, setNewTodo] = useState("");
   const [open, setOpen] = useState(false);
   const [selectedTodo, setSelectedTodo] = useState(null);
@@ -50,31 +49,19 @@ const ToDo = () => {
   };
 
   const handleDateChange = (date) => {
-    const formattedDate = date;
-    setSelectedDate(formattedDate);
-    if (date) {
-      // Format the selected date as required before sending it to the backend
-      axios
-        .put(
-          `http://localhost:3001/todo/${todoId.id}`,
-          { id: todoId.id, dueDate: formattedDate },
-          config
-        )
-        .then((response) => {
-          console.warn(response);
-          setTodos(
-            todos.map((todo) => {
-              if (todo.id === todoId.id) {
-                return { ...todo, dueDate: formattedDate };
-              }
-              return todo;
-            })
-          );
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    }
+    setSelectedDate(date);
+    const formattedDate = date.toISOString();
+     console.log(formattedDate, 111)
+    axios
+      .put(
+        `http://localhost:3001/todo/${todoId}`,
+        { id: todoId, dueDate: formattedDate },
+        config
+      )
+      .then((response) => {})
+      .catch((error) => {
+        console.log(error);
+      });
   };
 
   const deleteTodo = (id) => {
@@ -106,7 +93,7 @@ const ToDo = () => {
 
   useEffect(() => {
     setSelectedTodo(todo);
-  }, [todo]);
+  }, [selectedTodo?.dueDate, todo]);
 
   if (!todosData) {
     return <Loader />;
@@ -258,6 +245,7 @@ const ToDo = () => {
                     inputFormat="YYYY-MM-DD"
                     renderInput={(params) => <TextField {...params} />}
                   />
+                  
                 </LocalizationProvider> */}
                 <Labels
                   selectedTodo={selectedTodo}
